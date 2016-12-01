@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -219,6 +219,21 @@ public class CmsResourceTreeContainer extends HierarchicalContainer {
         } catch (CmsVfsResourceNotFoundException e) {
             removeItemRecursively(id);
             LOG.debug(e.getLocalizedMessage(), e);
+        }
+    }
+
+    /**
+     * Updates the item order according to the latest sort setting.<p>
+     */
+    public void updateSort() {
+
+        doSort();
+
+        // Post sort updates
+        if (isFiltered()) {
+            filterAll();
+        } else {
+            fireItemSetChange();
         }
     }
 

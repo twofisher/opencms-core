@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -176,7 +176,7 @@ public class CmsResourceTreeTable extends TreeTable {
     public static final String CAPTION_FOLDERS = "CAPTION_FOLDERS";
 
     /** The CMS context. */
-    private CmsObject m_cms;
+    CmsObject m_cms;
 
     /** The list of selection handlers. */
     private List<I_CmsSelectionHandler<CmsResource>> m_resourceSelectionHandlers = Lists.newArrayList();
@@ -249,10 +249,10 @@ public class CmsResourceTreeTable extends TreeTable {
 
             private static final long serialVersionUID = 1L;
 
-            @SuppressWarnings("synthetic-access")
             public void nodeExpand(ExpandEvent event) {
 
                 getTreeContainer().readTreeLevel(m_cms, (CmsUUID)event.getItemId());
+                getTreeContainer().updateSort();
                 markAsDirtyRecursive(); // required so open / close arrows on folders without contents are rendered correctly
             }
 

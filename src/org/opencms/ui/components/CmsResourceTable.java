@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,7 @@ import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_PROJEC
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_RELEASED_NOT_EXPIRED;
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_RESOURCE_NAME;
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_RESOURCE_TYPE;
+import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_SITE_PATH;
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_SIZE;
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_STATE;
 import static org.opencms.ui.components.CmsResourceTableProperty.PROPERTY_STATE_NAME;
@@ -382,6 +383,10 @@ public class CmsResourceTable extends CustomComponent {
 
         if (resourceItem.getItemProperty(PROPERTY_RESOURCE_NAME) != null) {
             resourceItem.getItemProperty(PROPERTY_RESOURCE_NAME).setValue(resource.getName());
+        }
+
+        if (resourceItem.getItemProperty(PROPERTY_SITE_PATH) != null) {
+            resourceItem.getItemProperty(PROPERTY_SITE_PATH).setValue(cms.getSitePath(resource));
         }
 
         if ((resourceItem.getItemProperty(PROPERTY_TITLE) != null) && (resourceProps != null)) {

@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@ import static org.opencms.workplace.explorer.Messages.GUI_INPUT_DATERELEASED_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_LOCKEDBY_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_NAME_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_NAVTEXT_0;
+import static org.opencms.workplace.explorer.Messages.GUI_INPUT_PATH_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_PERMISSIONS_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_SIZE_0;
 import static org.opencms.workplace.explorer.Messages.GUI_INPUT_STATE_0;
@@ -296,7 +297,7 @@ public class CmsResourceTableProperty implements Serializable {
         "PROPERTY_SITE_PATH",
         String.class,
         null,
-        null,
+        GUI_INPUT_PATH_0,
         true,
         0,
         0);

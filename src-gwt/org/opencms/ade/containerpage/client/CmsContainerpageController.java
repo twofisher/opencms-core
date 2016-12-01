@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,7 @@ import org.opencms.ade.containerpage.shared.CmsCntPageData;
 import org.opencms.ade.containerpage.shared.CmsContainer;
 import org.opencms.ade.containerpage.shared.CmsContainerElement;
 import org.opencms.ade.containerpage.shared.CmsContainerElementData;
+import org.opencms.ade.containerpage.shared.CmsContainerPageGalleryData;
 import org.opencms.ade.containerpage.shared.CmsContainerPageRpcContext;
 import org.opencms.ade.containerpage.shared.CmsCreateElementData;
 import org.opencms.ade.containerpage.shared.CmsElementViewInfo;
@@ -54,7 +55,6 @@ import org.opencms.ade.containerpage.shared.CmsRemovedElementStatus;
 import org.opencms.ade.containerpage.shared.rpc.I_CmsContainerpageService;
 import org.opencms.ade.containerpage.shared.rpc.I_CmsContainerpageServiceAsync;
 import org.opencms.ade.contenteditor.client.CmsContentEditor;
-import org.opencms.ade.galleries.shared.CmsGalleryDataBean;
 import org.opencms.gwt.client.CmsCoreProvider;
 import org.opencms.gwt.client.dnd.CmsCompositeDNDController;
 import org.opencms.gwt.client.dnd.CmsDNDHandler;
@@ -1695,44 +1695,30 @@ public final class CmsContainerpageController {
      */
     public void getNewElement(final String resourceType, final I_CmsSimpleCallback<CmsContainerElementData> callback) {
 
-        if (m_elements.containsKey(resourceType)) {
-            Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+        CmsRpcAction<CmsContainerElementData> action = new CmsRpcAction<CmsContainerElementData>() {
 
-                /**
-                 * @see com.google.gwt.user.client.Command#execute()
-                 */
-                public void execute() {
+            @Override
+            public void execute() {
 
-                    callback.execute(m_elements.get(resourceType));
+                getContainerpageService().getNewElementData(
+                    getData().getRpcContext(),
+                    getData().getDetailId(),
+                    getRequestParams(),
+                    resourceType,
+                    getPageState(),
+                    !isGroupcontainerEditing(),
+                    getLocale(),
+                    this);
+            }
 
-                }
-            });
-        } else {
-            CmsRpcAction<CmsContainerElementData> action = new CmsRpcAction<CmsContainerElementData>() {
+            @Override
+            protected void onResponse(CmsContainerElementData result) {
 
-                @Override
-                public void execute() {
-
-                    getContainerpageService().getNewElementData(
-                        getData().getRpcContext(),
-                        getData().getDetailId(),
-                        getRequestParams(),
-                        resourceType,
-                        getPageState(),
-                        !isGroupcontainerEditing(),
-                        getLocale(),
-                        this);
-                }
-
-                @Override
-                protected void onResponse(CmsContainerElementData result) {
-
-                    m_elements.put(result.getClientId(), result);
-                    callback.execute(result);
-                }
-            };
-            action.execute();
-        }
+                m_elements.put(result.getClientId(), result);
+                callback.execute(result);
+            }
+        };
+        action.execute();
     }
 
     /**
@@ -3587,7 +3573,7 @@ public final class CmsContainerpageController {
      */
     void updateGalleryData(final boolean viewChanged, final Runnable nextAction) {
 
-        CmsRpcAction<CmsGalleryDataBean> dataAction = new CmsRpcAction<CmsGalleryDataBean>() {
+        CmsRpcAction<CmsContainerPageGalleryData> dataAction = new CmsRpcAction<CmsContainerPageGalleryData>() {
 
             @Override
             public void execute() {
@@ -3601,7 +3587,7 @@ public final class CmsContainerpageController {
             }
 
             @Override
-            protected void onResponse(CmsGalleryDataBean result) {
+            protected void onResponse(CmsContainerPageGalleryData result) {
 
                 m_handler.m_editor.getAdd().updateGalleryData(result, viewChanged);
                 if (nextAction != null) {

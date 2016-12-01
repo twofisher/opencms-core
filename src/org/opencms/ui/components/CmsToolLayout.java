@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -114,6 +114,21 @@ public class CmsToolLayout extends CssLayout {
 
         component.addStyleName("borderless");
         m_main.setContent(component);
+    }
+
+    /**
+     * Sets the height of the main panel to 100% to allow for scrollable children.<p>
+     * If not set, the height of the main panel will adjust to it's content.<p>
+     *
+     * @param full <code>true</code> to set the height to 100%
+     */
+    public void setMainHeightFull(boolean full) {
+
+        if (full) {
+            m_main.setHeight("100%");
+        } else {
+            m_main.setHeightUndefined();
+        }
     }
 
     /**

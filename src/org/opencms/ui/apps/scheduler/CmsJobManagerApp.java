@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -124,10 +124,12 @@ public class CmsJobManagerApp extends A_CmsWorkplaceApp {
     protected Component getComponentForState(String state) {
 
         if (CmsStringUtil.isEmptyOrWhitespaceOnly(state)) {
+            m_rootLayout.setMainHeightFull(true);
             CmsJobTable table = getJobTable();
             table.reloadJobs();
             return table;
         } else if (state.startsWith(PATH_NAME_EDIT)) {
+            m_rootLayout.setMainHeightFull(false);
             String jobId = A_CmsWorkplaceApp.getParamFromState(state, PARAM_JOB_ID);
             String copyMode = A_CmsWorkplaceApp.getParamFromState(state, PARAM_COPY);
             return getJobEditView(jobId, Boolean.valueOf(copyMode).booleanValue());

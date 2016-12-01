@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  *
- * For further information about Alkacon Software GmbH, please see the
+ * For further information about Alkacon Software GmbH & Co. KG, please see the
  * company website: http://www.alkacon.com
  *
  * For further information about OpenCms, please see the
@@ -257,13 +257,13 @@ public final class CmsStringUtil {
      * <li>The <code>constraints</code></ol>
      *
      * @param name the name to check
-     * @param contraints the additional character constraints
+     * @param constraints the additional character constraints
      * @param key the key to use for generating the Exception (if required)
      * @param bundle the bundle to use for generating the Exception (if required)
      *
      * @throws CmsIllegalArgumentException if the check fails (generated from the given key and bundle)
      */
-    public static void checkName(String name, String contraints, String key, I_CmsMessageBundle bundle)
+    public static void checkName(String name, String constraints, String key, I_CmsMessageBundle bundle)
     throws CmsIllegalArgumentException {
 
         int l = name.length();
@@ -272,10 +272,10 @@ public final class CmsStringUtil {
             if (((c < 'a') || (c > 'z'))
                 && ((c < '0') || (c > '9'))
                 && ((c < 'A') || (c > 'Z'))
-                && (contraints.indexOf(c) < 0)) {
+                && (constraints.indexOf(c) < 0)) {
 
                 throw new CmsIllegalArgumentException(
-                    bundle.container(key, new Object[] {name, new Character(c), new Integer(i), contraints}));
+                    bundle.container(key, new Object[] {name, new Character(c), new Integer(i), constraints}));
             }
         }
     }

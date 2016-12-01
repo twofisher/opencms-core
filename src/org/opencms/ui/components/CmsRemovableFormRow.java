@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,7 +64,7 @@ public class CmsRemovableFormRow<T extends AbstractField<?>> extends HorizontalL
         addComponent(input);
         setExpandRatio(input, 1f);
         Button deleteButton = new Button("");
-        deleteButton.setIcon(FontOpenCms.CIRCLE_MINUS);
+        deleteButton.setIcon(FontOpenCms.CUT_SMALL);
         deleteButton.addStyleName(OpenCmsTheme.BUTTON_ICON);
         deleteButton.setDescription(removeLabel);
         deleteButton.addClickListener(new ClickListener() {

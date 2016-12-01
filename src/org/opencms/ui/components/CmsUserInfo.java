@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -278,20 +278,22 @@ public class CmsUserInfo extends VerticalLayout {
      */
     private void initUserMenu() {
 
-        m_menu.addMenuEntry(
-            CmsVaadinUtils.getMessageText(org.opencms.ui.Messages.GUI_CHANGE_PASSWORD_BUTTON_0),
-            null).addClickListener(new ClickListener() {
+        if (!m_user.isManaged()) {
+            m_menu.addMenuEntry(
+                CmsVaadinUtils.getMessageText(org.opencms.ui.Messages.GUI_CHANGE_PASSWORD_BUTTON_0),
+                null).addClickListener(new ClickListener() {
 
-                private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-                public void buttonClick(ClickEvent event) {
+                    public void buttonClick(ClickEvent event) {
 
-                    m_context.start(
-                        CmsVaadinUtils.getMessageText(org.opencms.ui.Messages.GUI_PWCHANGE_HEADER_0)
-                            + m_user.getSimpleName(),
-                        new CmsChangePasswordDialog(m_context));
-                }
-            });
+                        m_context.start(
+                            CmsVaadinUtils.getMessageText(org.opencms.ui.Messages.GUI_PWCHANGE_HEADER_0)
+                                + m_user.getSimpleName(),
+                            new CmsChangePasswordDialog(m_context));
+                    }
+                });
+        }
         final CmsPreferencesDialogAction preferencesAction = new CmsPreferencesDialogAction();
         m_menu.addMenuEntry(preferencesAction.getTitle(), null).addClickListener(new ClickListener() {
 
@@ -302,16 +304,18 @@ public class CmsUserInfo extends VerticalLayout {
                 preferencesAction.executeAction(m_context);
             }
         });
-        m_menu.addMenuEntry(CmsVaadinUtils.getMessageText(Messages.GUI_USER_EDIT_0), null).addClickListener(
-            new Button.ClickListener() {
+        if (!m_user.isManaged()) {
+            m_menu.addMenuEntry(CmsVaadinUtils.getMessageText(Messages.GUI_USER_EDIT_0), null).addClickListener(
+                new Button.ClickListener() {
 
-                private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-                public void buttonClick(ClickEvent event) {
+                    public void buttonClick(ClickEvent event) {
 
-                    editUserData();
-                }
-            });
+                        editUserData();
+                    }
+                });
+        }
         m_menu.addMenuEntry(
             CmsVaadinUtils.getMessageText(org.opencms.workplace.explorer.Messages.GUI_EXPLORER_CONTEXT_LOGOUT_0),
             null).addClickListener(new Button.ClickListener() {

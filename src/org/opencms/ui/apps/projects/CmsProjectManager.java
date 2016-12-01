@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,9 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
 
     /** The project history path name. */
     public static final String PATH_NAME_HISTORY = "history";
+
+    /** The small project icon path. */
+    public static final String ICON_PROJECT_SMALL = "apps/project_fileicon.png";
 
     /** The add project icon path. */
     private static final String ICON_ADD = "apps/project_add.png";
@@ -135,19 +138,24 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
     protected Component getComponentForState(String state) {
 
         if (CmsStringUtil.isEmptyOrWhitespaceOnly(state)) {
+            m_rootLayout.setMainHeightFull(true);
             return getProjectsTable();
         } else if (state.equals(PATH_NAME_ADD)) {
+            m_rootLayout.setMainHeightFull(false);
             return getNewProjectForm();
         } else if (state.equals(PATH_NAME_HISTORY)) {
+            m_rootLayout.setMainHeightFull(true);
             return new CmsProjectHistoryTable();
         } else if (state.startsWith(PATH_NAME_EDIT)) {
             CmsUUID projectId = getIdFromState(state);
             if (projectId != null) {
+                m_rootLayout.setMainHeightFull(false);
                 return new CmsEditProjectForm(this, projectId);
             }
         } else if (state.startsWith(PATH_NAME_FILES)) {
             CmsUUID projectId = getIdFromState(state);
             if (projectId != null) {
+                m_rootLayout.setMainHeightFull(true);
                 return new CmsProjectFiles(projectId);
             }
         }

@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -214,11 +214,17 @@ public class CmsGalleryControllerHandler implements ValueChangeHandler<CmsGaller
             Collections.sort(dialogBean.getGalleries(), new CmsComparatorTitle(true));
             setGalleriesTabContent(dialogBean.getGalleries(), searchObj.getGalleries());
         }
+
         if ((m_galleryDialog.getTypesTab() != null) && (dialogBean.getTypes() != null)) {
             setTypesTabContent(controller.getSearchTypes(), searchObj.getTypes());
         }
+
+        if (m_galleryDialog.getSearchTab() != null) {
+            m_galleryDialog.getSearchTab().fillParams(searchObj);
+        }
+
         if ((m_galleryDialog.getCategoriesTab() != null) && (dialogBean.getCategories() != null)) {
-            setCategoriesTabContent(dialogBean.getCategories());
+            setCategoriesTabContent(dialogBean.getCategories(), searchObj.getCategories());
         }
         GalleryTabId startTab = dialogBean.getStartTab();
 
@@ -419,10 +425,11 @@ public class CmsGalleryControllerHandler implements ValueChangeHandler<CmsGaller
      * Sets the list content of the category tab.<p>
      *
      * @param categoryRoot the root category tree entry
+     * @param selected the selected categories
      */
-    public void setCategoriesTabContent(List<CmsCategoryTreeEntry> categoryRoot) {
+    public void setCategoriesTabContent(List<CmsCategoryTreeEntry> categoryRoot, List<String> selected) {
 
-        m_galleryDialog.getCategoriesTab().fillContent(categoryRoot);
+        m_galleryDialog.getCategoriesTab().fillContent(categoryRoot, selected);
     }
 
     /**
@@ -475,7 +482,7 @@ public class CmsGalleryControllerHandler implements ValueChangeHandler<CmsGaller
             setTypesTabContent(controller.getSearchTypes(), searchObj.getTypes());
         }
         if ((m_galleryDialog.getCategoriesTab() != null) && (dialogBean.getCategories() != null)) {
-            setCategoriesTabContent(dialogBean.getCategories());
+            setCategoriesTabContent(dialogBean.getCategories(), searchObj.getCategories());
         }
     }
 

@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,7 @@ import org.opencms.ade.containerpage.shared.CmsContainer;
 import org.opencms.ade.containerpage.shared.CmsContainerElement;
 import org.opencms.ade.containerpage.shared.CmsContainerElement.ModelGroupState;
 import org.opencms.ade.containerpage.shared.CmsContainerElementData;
+import org.opencms.ade.containerpage.shared.CmsContainerPageGalleryData;
 import org.opencms.ade.containerpage.shared.CmsContainerPageRpcContext;
 import org.opencms.ade.containerpage.shared.CmsCreateElementData;
 import org.opencms.ade.containerpage.shared.CmsElementViewInfo;
@@ -55,7 +56,9 @@ import org.opencms.ade.containerpage.shared.rpc.I_CmsContainerpageService;
 import org.opencms.ade.detailpage.CmsDetailPageResourceHandler;
 import org.opencms.ade.galleries.CmsGalleryService;
 import org.opencms.ade.galleries.shared.CmsGalleryDataBean;
+import org.opencms.ade.galleries.shared.CmsGallerySearchBean;
 import org.opencms.ade.galleries.shared.CmsResourceTypeBean;
+import org.opencms.ade.galleries.shared.I_CmsGalleryProviderConstants.GalleryTabId;
 import org.opencms.ade.sitemap.CmsVfsSitemapService;
 import org.opencms.file.CmsFile;
 import org.opencms.file.CmsObject;
@@ -859,7 +862,7 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
     /**
      * @see org.opencms.ade.containerpage.shared.rpc.I_CmsContainerpageService#getGalleryDataForPage(java.util.List, org.opencms.util.CmsUUID, java.lang.String, java.lang.String)
      */
-    public CmsGalleryDataBean getGalleryDataForPage(
+    public CmsContainerPageGalleryData getGalleryDataForPage(
         final List<CmsContainer> containers,
         CmsUUID elementView,
         String uri,
@@ -893,11 +896,37 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
             srv.setCms(cms);
             srv.setRequest(getRequest());
             data = srv.getInitialSettingsForContainerPage(resTypeBeans, uri, locale);
+            CmsContainerPageGalleryData result = new CmsContainerPageGalleryData();
+
+            CmsADESessionCache cache = CmsADESessionCache.getCache(getRequest(), cms);
+            CmsGallerySearchBean search = cache.getLastPageEditorGallerySearch();
+            String subsite = OpenCms.getADEManager().getSubSiteRoot(cms, cms.addSiteRoot(uri));
+            String searchStoreKey = elementView + "|" + subsite + "|" + locale;
+            data.getContextParameters().put("searchStoreKey", searchStoreKey);
+            if (search != null) {
+                if (searchStoreKey.equals(
+                    search.getOriginalGalleryData().getContextParameters().get("searchStoreKey"))) {
+                    if (hasCompatibleSearchData(search.getOriginalGalleryData(), data, search)) {
+
+                        // only restore last result list if the search was performed in a 'similar' context
+                        search.setTabId(GalleryTabId.cms_tab_results.toString());
+                        search.setPage(1);
+                        search.setLastPage(0);
+                        data.setStartTab(GalleryTabId.cms_tab_results);
+                        search = srv.getSearch(search);
+                        data.setIncludeExpiredDefault(search.isIncludeExpired());
+                        result.setGallerySearch(search);
+                    }
+                }
+            }
+
+            result.setGalleryData(data);
+            return result;
 
         } catch (Exception e) {
             error(e);
+            return null;
         }
-        return data;
     }
 
     /**
@@ -905,7 +934,6 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
      */
     public CmsContainerElementData getNewElementData(
         CmsContainerPageRpcContext context,
-
         CmsUUID detailContentId,
         String reqParams,
         String resourceType,
@@ -2341,20 +2369,23 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
             getResponse(),
             true,
             locale);
-        CmsContainerElementBean elementBean = getSessionCache().getCacheContainerElement(resourceTypeName);
-        if (elementBean == null) {
-            CmsADEConfigData configData = getConfigData(cms.getRequestContext().addSiteRoot(uriParam));
-            CmsResourceTypeConfig typeConfig = configData.getResourceType(resourceTypeName);
-            elementBean = CmsContainerElementBean.createElementForResourceType(
-                cms,
-                OpenCms.getResourceManager().getResourceType(resourceTypeName),
-                "/",
-                Collections.<String, String> emptyMap(),
-                typeConfig.isCopyInModels(),
-                locale);
-            getSessionCache().setCacheContainerElement(elementBean.editorHash(), elementBean);
-        }
-        return elemUtil.getElementData(elemUtil.getPage(), elementBean, containers, allowNested);
+        CmsADEConfigData configData = getConfigData(cms.getRequestContext().addSiteRoot(uriParam));
+        CmsResourceTypeConfig typeConfig = configData.getResourceType(resourceTypeName);
+        CmsContainerElementBean elementBean = CmsContainerElementBean.createElementForResourceType(
+            cms,
+            OpenCms.getResourceManager().getResourceType(resourceTypeName),
+            "/",
+            Collections.<String, String> emptyMap(),
+            typeConfig.isCopyInModels(),
+            locale);
+        CmsContainerElementData data = elemUtil.getElementData(
+            elemUtil.getPage(),
+            elementBean,
+            containers,
+            allowNested);
+        getSessionCache().setCacheContainerElement(resourceTypeName, elementBean);
+        getSessionCache().setCacheContainerElement(elementBean.editorHash(), elementBean);
+        return data;
     }
 
     /**
@@ -2397,6 +2428,38 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
             m_workplaceSettings = CmsWorkplace.getWorkplaceSettings(getCmsObject(), getRequest());
         }
         return m_workplaceSettings;
+    }
+
+    /**
+     * Checks if results for the stored gallery data can be restored for the new gallery data
+     *
+     * @param originalGalleryData the original gallery data
+     * @param data the new gallery data
+     * @param search the search bean
+     *
+     * @return true if the original and new gallery data are compatible, i.e. we can restore the search results
+     */
+    private boolean hasCompatibleSearchData(
+        CmsGalleryDataBean originalGalleryData,
+        CmsGalleryDataBean data,
+        CmsGallerySearchBean search) {
+
+        Set<String> originalUsableTypes = Sets.newHashSet();
+        Set<String> usableTypes = Sets.newHashSet();
+        for (CmsResourceTypeBean type : originalGalleryData.getTypes()) {
+            if (!type.isDeactivated()) {
+                originalUsableTypes.add(type.getType());
+            }
+        }
+        for (CmsResourceTypeBean type : data.getTypes()) {
+            if (!type.isDeactivated()) {
+                usableTypes.add(type.getType());
+            }
+        }
+        if (!usableTypes.containsAll(originalUsableTypes)) {
+            return false;
+        }
+        return true;
     }
 
     /**

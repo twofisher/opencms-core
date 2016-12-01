@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  *
- * For further information about Alkacon Software GmbH, please see the
+ * For further information about Alkacon Software GmbH & Co. KG, please see the
  * company website: http://www.alkacon.com
  *
  * For further information about OpenCms, please see the
@@ -145,6 +145,9 @@ public class CmsPropertyDefinition implements Cloneable, Comparable<CmsPropertyD
 
     /** Property stating where to create new gallery folders. */
     public static final String PROPERTY_GALLERIES_FOLDER = "galleries.folder";
+
+    /** Property containing the maps API key. */
+    public static final String PROPERTY_GOOGLE_API_KEY = "google.apikey";
 
     /** Property constant for <code>"image.size"</code>. */
     public static final String PROPERTY_IMAGE_SIZE = "image.size";

@@ -2,7 +2,7 @@
  * This library is part of OpenCms -
  * the Open Source Content Management System
  *
- * Copyright (c) Alkacon Software GmbH (http://www.alkacon.com)
+ * Copyright (c) Alkacon Software GmbH & Co. KG (http://www.alkacon.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -152,7 +152,7 @@ public class CmsWorkplaceAppManager {
 
     /** Legacy apps explicitly hidden from new workplace. */
     private static final Set<String> LEGACY_BLACKLIST = Sets.newConcurrentHashSet(
-        Arrays.asList("/git", "/scheduler", "/galleryoverview"));
+        Arrays.asList("/git", "/scheduler", "/galleryoverview", "/projects"));
 
     /** The standard quick launch apps. */
     private static final String[] STANDARD_APPS = new String[] {
