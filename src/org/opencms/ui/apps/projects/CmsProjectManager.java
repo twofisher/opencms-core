@@ -27,13 +27,22 @@
 
 package org.opencms.ui.apps.projects;
 
+import org.opencms.file.CmsObject;
+import org.opencms.file.CmsResource;
 import org.opencms.main.CmsException;
 import org.opencms.main.CmsLog;
 import org.opencms.ui.A_CmsUI;
 import org.opencms.ui.CmsVaadinUtils;
+import org.opencms.ui.FontOpenCms;
+import org.opencms.ui.I_CmsDialogContext;
+import org.opencms.ui.I_CmsDialogContext.ContextType;
 import org.opencms.ui.apps.A_CmsWorkplaceApp;
-import org.opencms.ui.apps.CmsProjectManagerConfiguration;
+import org.opencms.ui.apps.CmsFileExplorer;
+import org.opencms.ui.apps.I_CmsContextProvider;
 import org.opencms.ui.apps.Messages;
+import org.opencms.ui.components.CmsErrorDialog;
+import org.opencms.ui.components.CmsFileTable;
+import org.opencms.ui.components.CmsFileTableDialogContext;
 import org.opencms.ui.components.OpenCmsTheme;
 import org.opencms.util.CmsStringUtil;
 import org.opencms.util.CmsUUID;
@@ -44,13 +53,21 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 
+import com.vaadin.event.FieldEvents.TextChangeEvent;
+import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.themes.ValoTheme;
 
 /**
  * The project manager app.<p>
  */
 public class CmsProjectManager extends A_CmsWorkplaceApp {
+
+    /** The small project icon path. */
+    public static final String ICON_PROJECT_SMALL = "apps/project_fileicon.png";
 
     /** The add project path name. */
     public static final String PATH_NAME_ADD = "add";
@@ -64,9 +81,6 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
     /** The project history path name. */
     public static final String PATH_NAME_HISTORY = "history";
 
-    /** The small project icon path. */
-    public static final String ICON_PROJECT_SMALL = "apps/project_fileicon.png";
-
     /** The add project icon path. */
     private static final String ICON_ADD = "apps/project_add.png";
 
@@ -75,6 +89,9 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
 
     /** The logger for this class. */
     private static Log LOG = CmsLog.getLog(CmsProjectManager.class.getName());
+
+    /** The file table filter input. */
+    private TextField m_fileTableFilter;
 
     /**
      * @see org.opencms.ui.apps.A_CmsWorkplaceApp#getBreadCrumbForState(java.lang.String)
@@ -137,6 +154,11 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
     @Override
     protected Component getComponentForState(String state) {
 
+        if (m_fileTableFilter != null) {
+            m_infoLayout.removeComponent(m_fileTableFilter);
+            m_fileTableFilter = null;
+        }
+
         if (CmsStringUtil.isEmptyOrWhitespaceOnly(state)) {
             m_rootLayout.setMainHeightFull(true);
             return getProjectsTable();
@@ -156,7 +178,25 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
             CmsUUID projectId = getIdFromState(state);
             if (projectId != null) {
                 m_rootLayout.setMainHeightFull(true);
-                return new CmsProjectFiles(projectId);
+                final CmsFileTable fileTable = getProjectFiles(projectId);
+                m_fileTableFilter = new TextField();
+                m_fileTableFilter.setIcon(FontOpenCms.FILTER);
+                m_fileTableFilter.setInputPrompt(
+                    Messages.get().getBundle(UI.getCurrent().getLocale()).key(Messages.GUI_EXPLORER_FILTER_0));
+                m_fileTableFilter.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
+                m_fileTableFilter.setWidth("200px");
+                m_fileTableFilter.addTextChangeListener(new TextChangeListener() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    public void textChange(TextChangeEvent event) {
+
+                        fileTable.filterTable(event.getText());
+
+                    }
+                });
+                m_infoLayout.addComponent(m_fileTableFilter);
+                return fileTable;
             }
         }
 
@@ -171,6 +211,46 @@ public class CmsProjectManager extends A_CmsWorkplaceApp {
     protected Component getNewProjectForm() {
 
         return new CmsEditProjectForm(this);
+    }
+
+    /**
+     * Returns the project files table.<p>
+     *
+     * @param projectId the selected project id
+     *
+     * @return the file table
+     */
+    protected CmsFileTable getProjectFiles(CmsUUID projectId) {
+
+        final CmsFileTable fileTable = new CmsFileTable(null);
+        fileTable.applyWorkplaceAppSettings();
+        fileTable.setContextProvider(new I_CmsContextProvider() {
+
+            /**
+             * @see org.opencms.ui.apps.I_CmsContextProvider#getDialogContext()
+             */
+            public I_CmsDialogContext getDialogContext() {
+
+                CmsFileTableDialogContext context = new CmsFileTableDialogContext(
+                    CmsProjectManagerConfiguration.APP_ID,
+                    ContextType.fileTable,
+                    fileTable,
+                    fileTable.getSelectedResources());
+                context.setEditableProperties(CmsFileExplorer.INLINE_EDIT_PROPERTIES);
+                return context;
+            }
+        });
+        CmsObject cms = A_CmsUI.getCmsObject();
+        List<CmsResource> childResources;
+        try {
+            childResources = cms.readProjectView(projectId, CmsResource.STATE_KEEP);
+            fileTable.fillTable(cms, childResources);
+        } catch (CmsException e) {
+            CmsErrorDialog.showErrorDialog(
+                CmsVaadinUtils.getMessageText(Messages.ERR_PROJECTS_CAN_NOT_DISPLAY_FILES_0),
+                e);
+        }
+        return fileTable;
     }
 
     /**

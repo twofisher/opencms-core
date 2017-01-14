@@ -29,6 +29,7 @@ package org.opencms.report;
 
 import org.opencms.file.CmsObject;
 import org.opencms.main.OpenCms;
+import org.opencms.ui.A_CmsUI;
 import org.opencms.util.CmsUUID;
 
 import java.util.List;
@@ -94,21 +95,6 @@ public abstract class A_CmsReportThread extends Thread implements I_CmsReportThr
     }
 
     /**
-     * Returns the time of last report entry.<p>
-     *
-     * Will return zero if no entry has been written.<p>
-     *
-     * @return time of last report entry
-     */
-    public long getLastEntryTime() {
-
-        if (getReport() == null) {
-            return 0;
-        }
-        return getReport().getLastEntryTime();
-    }
-
-    /**
      * Returns the error exception in case there was an error during the execution of
      * this Thread, null otherwise.<p>
      *
@@ -131,6 +117,33 @@ public abstract class A_CmsReportThread extends Thread implements I_CmsReportThr
         } else {
             return null;
         }
+    }
+
+    /**
+     * Returns the time of last report entry.<p>
+     *
+     * Will return zero if no entry has been written.<p>
+     *
+     * @return time of last report entry
+     */
+    public long getLastEntryTime() {
+
+        if (getReport() == null) {
+            return 0;
+        }
+        return getReport().getLastEntryTime();
+    }
+
+    /**
+     * Returns the logger to which the report output should also be directed.<p>
+     *
+     * If this returns null, report output is not sent to a logger.
+     *
+     * @return the logger to which report output should be sent.
+     */
+    public Object getLogChannel() {
+
+        return null;
     }
 
     /**
@@ -230,7 +243,10 @@ public abstract class A_CmsReportThread extends Thread implements I_CmsReportThr
      */
     protected void initHtmlReport(Locale locale) {
 
-        m_report = new CmsHtmlReport(locale, m_cms.getRequestContext().getSiteRoot());
+        boolean isVaadin = A_CmsUI.get() != null;
+        m_report = isVaadin
+        ? new CmsVaadinHtmlReport(locale, m_cms.getRequestContext().getSiteRoot(), getLogChannel())
+        : new CmsHtmlReport(locale, m_cms.getRequestContext().getSiteRoot());
     }
 
     /**
@@ -243,6 +259,9 @@ public abstract class A_CmsReportThread extends Thread implements I_CmsReportThr
      */
     protected void initOldHtmlReport(Locale locale) {
 
-        m_report = new CmsHtmlReport(locale, m_cms.getRequestContext().getSiteRoot(), true, false);
+        boolean isVaadin = A_CmsUI.get() != null;
+        m_report = isVaadin
+        ? new CmsVaadinHtmlReport(locale, m_cms.getRequestContext().getSiteRoot(), true, false, getLogChannel())
+        : new CmsHtmlReport(locale, m_cms.getRequestContext().getSiteRoot(), true, false);
     }
 }

@@ -36,11 +36,12 @@ import org.opencms.ade.containerpage.shared.CmsContainerElementData;
 import org.opencms.ade.containerpage.shared.CmsFormatterConfig;
 import org.opencms.gwt.client.CmsCoreProvider;
 import org.opencms.gwt.client.ui.CmsFieldSet;
+import org.opencms.gwt.client.ui.contextmenu.CmsContextMenuButton;
 import org.opencms.gwt.client.ui.css.I_CmsInputLayoutBundle;
+import org.opencms.gwt.client.ui.css.I_CmsLayoutBundle;
 import org.opencms.gwt.client.ui.input.CmsCheckBox;
 import org.opencms.gwt.client.ui.input.CmsMultiCheckBox;
 import org.opencms.gwt.client.ui.input.CmsSelectBox;
-import org.opencms.gwt.client.ui.input.CmsTextBox;
 import org.opencms.gwt.client.ui.input.I_CmsFormField;
 import org.opencms.gwt.client.ui.input.form.A_CmsFormFieldPanel;
 import org.opencms.gwt.client.ui.input.form.CmsBasicFormField;
@@ -51,12 +52,14 @@ import org.opencms.gwt.client.ui.input.form.CmsFormDialog;
 import org.opencms.gwt.client.ui.input.form.CmsFormRow;
 import org.opencms.gwt.client.ui.input.form.CmsInfoBoxFormFieldPanel;
 import org.opencms.gwt.client.ui.input.form.I_CmsFormSubmitHandler;
+import org.opencms.gwt.client.ui.resourceinfo.CmsResourceInfoView.ContextMenuHandler;
 import org.opencms.gwt.client.util.CmsDomUtil;
 import org.opencms.gwt.client.util.I_CmsSimpleCallback;
 import org.opencms.gwt.shared.CmsGwtConstants;
 import org.opencms.gwt.shared.CmsListInfoBean;
 import org.opencms.gwt.shared.CmsTemplateContextInfo;
 import org.opencms.util.CmsStringUtil;
+import org.opencms.util.CmsUUID;
 import org.opencms.xml.content.CmsXmlContentProperty;
 
 import java.util.ArrayList;
@@ -143,14 +146,8 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
     /** The break up model group checkbox. */
     private CmsCheckBox m_modelGroupBreakUp;
 
-    /** The is model group description field. */
-    private CmsTextBox m_modelGroupDescription;
-
     /** Checkbox to set the 'model group' status. */
     CmsSelectBox m_modelGroupSelect;
-
-    /** The is model group title field. */
-    private CmsTextBox m_modelGroupTitle;
 
     /** The element setting values. */
     private Map<String, String> m_settings;
@@ -225,10 +222,12 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
 
                 if (isEditableModelGroup && !elementWidget.hasModelGroupParent()) {
                     addModelGroupSettings(elementBean, elementWidget, modelGroupFieldSet);
-                } else {
+                } else if (!elementWidget.isModelGroup()) {
                     addCreateNewCheckbox(elementBean, modelGroupFieldSet);
                 }
-                fieldSetPanel.getMainPanel().insert(modelGroupFieldSet, 1);
+                if (modelGroupFieldSet.getWidgetCount() > 0) {
+                    fieldSetPanel.getMainPanel().insert(modelGroupFieldSet, 1);
+                }
 
             } else if (elementWidget.isModelGroup()) {
                 CmsFieldSet modelGroupFieldSet = new CmsFieldSet();
@@ -283,6 +282,12 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
             }
         } else {
             formFieldPanel = new CmsInfoBoxFormFieldPanel(infoBean);
+        }
+        String id = CmsContainerpageController.getServerId(elementBean.getClientId());
+        if (CmsUUID.isValidUUID(id) && !(new CmsUUID(id).isNullUUID())) {
+            CmsContextMenuButton menuButton = new CmsContextMenuButton(new CmsUUID(id), new ContextMenuHandler());
+            menuButton.addStyleName(I_CmsLayoutBundle.INSTANCE.listItemWidgetCss().permaVisible());
+            formFieldPanel.getInfoWidget().addButton(menuButton);
         }
         getForm().setWidget(formFieldPanel);
         formFieldPanel.addStyleName(I_CmsInputLayoutBundle.INSTANCE.inputCss().formGradientBackground());
@@ -373,21 +378,6 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
     }
 
     /**
-     * Enables the model group title and description fields.<p>
-     *
-     * @param enabled <code>true</code> to enable
-     */
-    void setModelGroupEnabled(boolean enabled) {
-
-        if (m_modelGroupTitle != null) {
-            m_modelGroupTitle.setEnabled(enabled);
-        }
-        if (m_modelGroupDescription != null) {
-            m_modelGroupDescription.setEnabled(enabled);
-        }
-    }
-
-    /**
      * Sets the template context changed flag.<p>
      * @param changed the template context changed flag
      */
@@ -449,10 +439,6 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
                     break;
             }
             if (group != GroupOption.disabled) {
-                fieldValues.put(CmsContainerElement.MODEL_GROUP_TITLE, m_modelGroupTitle.getFormValueAsString());
-                fieldValues.put(
-                    CmsContainerElement.MODEL_GROUP_DESCRIPTION,
-                    m_modelGroupDescription.getFormValueAsString());
                 modelGroupId = CmsContainerpageController.getServerId(m_elementBean.getClientId());
             }
         }
@@ -559,33 +545,6 @@ public class CmsElementSettingsDialog extends CmsFormDialog {
         selectRow.getLabel().setText(Messages.get().key(Messages.GUI_USE_AS_MODEL_GROUP_LABEL_0));
         selectRow.getWidgetContainer().add(m_modelGroupSelect);
         fieldSet.add(selectRow);
-        m_modelGroupSelect.addValueChangeHandler(new ValueChangeHandler<String>() {
-
-            public void onValueChange(ValueChangeEvent<String> event) {
-
-                GroupOption option = GroupOption.valueOf(event.getValue());
-                setModelGroupEnabled(option != GroupOption.disabled);
-            }
-        });
-        CmsFormRow titleRow = new CmsFormRow();
-        titleRow.getLabel().setText(Messages.get().key(Messages.GUI_MODEL_GROUP_TITLE_0));
-        m_modelGroupTitle = new CmsTextBox();
-        titleRow.getWidgetContainer().add(m_modelGroupTitle);
-        fieldSet.add(titleRow);
-
-        CmsFormRow descriptionRow = new CmsFormRow();
-        descriptionRow.getLabel().setText(Messages.get().key(Messages.GUI_MODEL_GROUP_DESCRIPTION_0));
-        m_modelGroupDescription = new CmsTextBox();
-        descriptionRow.getWidgetContainer().add(m_modelGroupDescription);
-        fieldSet.add(descriptionRow);
-
-        if (elementWidget.isModelGroup()) {
-            m_modelGroupTitle.setFormValueAsString(
-                elementBean.getSettings().get(CmsContainerElement.MODEL_GROUP_TITLE));
-            m_modelGroupDescription.setFormValueAsString(
-                elementBean.getSettings().get(CmsContainerElement.MODEL_GROUP_DESCRIPTION));
-        }
-        setModelGroupEnabled(elementWidget.isModelGroup());
     }
 
     /**

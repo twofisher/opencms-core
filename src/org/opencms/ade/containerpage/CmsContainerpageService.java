@@ -36,6 +36,7 @@ import org.opencms.ade.containerpage.inherited.CmsInheritanceReference;
 import org.opencms.ade.containerpage.inherited.CmsInheritanceReferenceParser;
 import org.opencms.ade.containerpage.inherited.CmsInheritedContainerState;
 import org.opencms.ade.containerpage.shared.CmsCntPageData;
+import org.opencms.ade.containerpage.shared.CmsCntPageData.ElementDeleteMode;
 import org.opencms.ade.containerpage.shared.CmsCntPageData.ElementReuseMode;
 import org.opencms.ade.containerpage.shared.CmsContainer;
 import org.opencms.ade.containerpage.shared.CmsContainerElement;
@@ -431,6 +432,21 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
     }
 
     /**
+     * Returns the server id part of the given client id.<p>
+     *
+     * @param id the id
+     *
+     * @return the server id
+     */
+    private static String getServerIdString(String id) {
+
+        if (id.contains(CmsADEManager.CLIENT_ID_SEPERATOR)) {
+            id = id.substring(0, id.indexOf(CmsADEManager.CLIENT_ID_SEPERATOR));
+        }
+        return id;
+    }
+
+    /**
      * @see org.opencms.ade.containerpage.shared.rpc.I_CmsContainerpageService#addToFavoriteList(org.opencms.ade.containerpage.shared.CmsContainerPageRpcContext, java.lang.String)
      */
     public void addToFavoriteList(CmsContainerPageRpcContext context, String clientId) throws CmsRpcException {
@@ -583,11 +599,8 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
                     org.opencms.xml.containerpage.Messages.ERR_INVALID_ID_1,
                     id));
         }
-        String serverId = id;
+        String serverId = getServerIdString(id);
         try {
-            if (serverId.contains(CmsADEManager.CLIENT_ID_SEPERATOR)) {
-                serverId = serverId.substring(0, serverId.indexOf(CmsADEManager.CLIENT_ID_SEPERATOR));
-            }
             return new CmsUUID(serverId);
         } catch (NumberFormatException e) {
             throw new CmsIllegalArgumentException(
@@ -949,7 +962,13 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
             initRequestFromRpcContext(context);
             String containerpageUri = getCmsObject().getSitePath(pageResource);
             Locale locale = CmsLocaleManager.getLocale(localeName);
-            result = getNewElement(resourceType, containerpageUri, detailContentId, containers, allowNested, locale);
+            result = getNewElement(
+                getServerIdString(resourceType),
+                containerpageUri,
+                detailContentId,
+                containers,
+                allowNested,
+                locale);
         } catch (Throwable e) {
             error(e);
         }
@@ -1190,6 +1209,11 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
                 title = Messages.get().getBundle(wpLocale).key(Messages.GUI_TITLE_MODEL_0);
 
             }
+            ElementDeleteMode deleteMode = OpenCms.getWorkplaceManager().getElementDeleteMode();
+            if (deleteMode == null) {
+                deleteMode = ElementDeleteMode.askDelete;
+            }
+
             data = new CmsCntPageData(
                 onlineLink,
                 noEditReason,
@@ -1207,6 +1231,7 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
                 Lists.newArrayList(viewHelper.getViewMap().values()),
                 viewHelper.getDefaultView(),
                 reuseMode,
+                deleteMode,
                 isModelPage,
                 isEditingModelGroup,
                 modelGroupElementId,
@@ -1778,7 +1803,7 @@ public class CmsContainerpageService extends CmsGwtService implements I_CmsConta
             return element;
         }
         if (id.contains(CmsADEManager.CLIENT_ID_SEPERATOR)) {
-            id = id.substring(0, id.indexOf(CmsADEManager.CLIENT_ID_SEPERATOR));
+            id = getServerIdString(id);
             element = getSessionCache().getCacheContainerElement(id);
             if (element != null) {
                 return element;

@@ -839,6 +839,17 @@ public class CmsContainerpageHandler extends A_CmsToolbarHandler {
      * Removes the given container-page element.<p>
      *
      * @param element the element
+     *
+     */
+    public void removeElement(CmsContainerPageElementPanel element) {
+
+        m_controller.removeElement(element);
+    }
+
+    /**
+     * Removes the given container-page element.<p>
+     *
+     * @param element the element
      * @param removeMode the element remove mode
      *
      */
@@ -943,7 +954,12 @@ public class CmsContainerpageHandler extends A_CmsToolbarHandler {
      */
     public void showElementInfo(CmsContainerPageElementPanel element) {
 
-        CmsUUID structureId = element.getStructureId();
+        CmsUUID structureId;
+        if (element.isModelGroup() && !element.getModelGroupId().isNullUUID()) {
+            structureId = element.getModelGroupId();
+        } else {
+            structureId = element.getStructureId();
+        }
         CmsResourceInfoDialog.load(structureId, true, null, null);
     }
 

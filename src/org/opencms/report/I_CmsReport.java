@@ -50,6 +50,15 @@ public interface I_CmsReport {
     /** Indicates headline formatting. */
     int FORMAT_HEADLINE = 2;
 
+    /** Names of the report format constants. */
+    public static final String[] FORMAT_NAMES = {
+        "FORMAT_DEFAULT",
+        "FORMAT_WARNING",
+        "FORMAT_HEADLINE",
+        "FORMAT_NOTE",
+        "FORMAT_OK",
+        "FORMAT_NOTE"};
+
     /** Indicates note formatting. */
     int FORMAT_NOTE = 3;
 

@@ -297,7 +297,7 @@ public final class CmsContainerpageController {
             element.setClientId(elementWidget.getId());
             element.setResourceType(elementWidget.getNewType());
             element.setCreateNew(elementWidget.isCreateNew());
-            element.setModelGroup(elementWidget.isModelGroup());
+            element.setModelGroupId(elementWidget.getModelGroupId());
             element.setSitePath(elementWidget.getSitePath());
             element.setNewEditorDisabled(elementWidget.isNewEditorDisabled());
             m_currentElements.add(element);
@@ -377,7 +377,7 @@ public final class CmsContainerpageController {
             element.setClientId(elementWidget.getId());
             element.setResourceType(elementWidget.getNewType());
             element.setCreateNew(elementWidget.isCreateNew());
-            element.setModelGroup(elementWidget.isModelGroup());
+            element.setModelGroupId(elementWidget.getModelGroupId());
             element.setSitePath(elementWidget.getSitePath());
             element.setNewEditorDisabled(elementWidget.isNewEditorDisabled());
             m_currentElements.add(element);
@@ -875,17 +875,6 @@ public final class CmsContainerpageController {
         Map<String, String> params = CmsCoreProvider.get().getAdeParameters();
         String removeMode = params.get(PARAM_REMOVEMODE);
         return (removeMode == null) || removeMode.equals("confirm");
-    }
-
-    /**
-     * Asks the user whether an element which has been removed should be deleted.<p>
-     *
-     * @param status the status of the removed element
-     */
-    protected static void askWhetherRemovedElementShouldBeDeleted(final CmsRemovedElementStatus status) {
-
-        CmsRemovedElementDeletionDialog dialog = new CmsRemovedElementDeletionDialog(status);
-        dialog.center();
     }
 
     /**
@@ -1835,6 +1824,7 @@ public final class CmsContainerpageController {
                 CmsConfirmRemoveDialog removeDialog = new CmsConfirmRemoveDialog(
                     status.getElementInfo(),
                     showDeleteCheckbox,
+                    getData().getDeleteMode(),
                     new AsyncCallback<Boolean>() {
 
                         public void onFailure(Throwable caught) {
@@ -2492,6 +2482,19 @@ public final class CmsContainerpageController {
      * Removes the given container element from its parent container.<p>
      *
      * @param dragElement the element to remove
+     */
+    public void removeElement(org.opencms.ade.containerpage.client.ui.CmsContainerPageElementPanel dragElement) {
+
+        ElementRemoveMode removeMode = isConfirmRemove()
+        ? ElementRemoveMode.confirmRemove
+        : ElementRemoveMode.saveAndCheckReferences;
+        removeElement(dragElement, removeMode);
+    }
+
+    /**
+     * Removes the given container element from its parent container.<p>
+     *
+     * @param dragElement the element to remove
      * @param removeMode the remove mode
      */
     public void removeElement(
@@ -2510,6 +2513,7 @@ public final class CmsContainerpageController {
             if (id != null) {
                 addToRecentList(id, null);
             }
+
             I_CmsDropContainer container = dragElement.getParentTarget();
             switch (removeMode) {
                 case saveAndCheckReferences:
@@ -3127,6 +3131,17 @@ public final class CmsContainerpageController {
         for (CmsContainerElementData element : elements.values()) {
             m_elements.put(element.getClientId(), element);
         }
+    }
+
+    /**
+     * Asks the user whether an element which has been removed should be deleted.<p>
+     *
+     * @param status the status of the removed element
+     */
+    protected void askWhetherRemovedElementShouldBeDeleted(final CmsRemovedElementStatus status) {
+
+        CmsRemovedElementDeletionDialog dialog = new CmsRemovedElementDeletionDialog(status);
+        dialog.center();
     }
 
     /**

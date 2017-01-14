@@ -583,8 +583,6 @@ public class CmsModelGroupHelper {
                     Map<String, String> settings = new HashMap<String, String>(element.getIndividualSettings());
                     settings.remove(CmsContainerElement.MODEL_GROUP_ID);
                     settings.remove(CmsContainerElement.MODEL_GROUP_STATE);
-                    settings.remove(CmsContainerElement.MODEL_GROUP_TITLE);
-                    settings.remove(CmsContainerElement.MODEL_GROUP_DESCRIPTION);
                     elements.add(
                         new CmsContainerElementBean(element.getId(), element.getFormatterId(), settings, false));
                     hasChanges = true;
@@ -608,23 +606,11 @@ public class CmsModelGroupHelper {
 
         List<CmsProperty> changedProps = new ArrayList<CmsProperty>();
         if (baseElement != null) {
-            changedProps.add(
-                new CmsProperty(
-                    CmsPropertyDefinition.PROPERTY_TITLE,
-                    baseElement.getIndividualSettings().get(CmsContainerElement.MODEL_GROUP_TITLE),
-                    null));
-            changedProps.add(
-                new CmsProperty(
-                    CmsPropertyDefinition.PROPERTY_DESCRIPTION,
-                    baseElement.getIndividualSettings().get(CmsContainerElement.MODEL_GROUP_DESCRIPTION),
-                    null));
-            changedProps.add(
-                new CmsProperty(
-                    CmsPropertyDefinition.PROPERTY_TEMPLATE_ELEMENTS,
-                    Boolean.parseBoolean(baseElement.getIndividualSettings().get(CmsContainerElement.USE_AS_COPY_MODEL))
-                    ? CmsContainerElement.USE_AS_COPY_MODEL
-                    : null,
-                    null));
+            String val = Boolean.parseBoolean(
+                baseElement.getIndividualSettings().get(CmsContainerElement.USE_AS_COPY_MODEL))
+                ? CmsContainerElement.USE_AS_COPY_MODEL
+                : "";
+            changedProps.add(new CmsProperty(CmsPropertyDefinition.PROPERTY_TEMPLATE_ELEMENTS, val, val));
         }
         m_cms.writePropertyObjects(pageResource, changedProps);
 
@@ -872,20 +858,6 @@ public class CmsModelGroupHelper {
         if (!(baseElement.isCopyModel() && allowCopyModel)) {
             // skip the model id in case of copy models
             settings.put(CmsContainerElement.MODEL_GROUP_ID, element.getId().toString());
-            try {
-                CmsProperty titleProp = m_cms.readPropertyObject(
-                    element.getResource(),
-                    CmsPropertyDefinition.PROPERTY_TITLE,
-                    false);
-                settings.put(CmsContainerElement.MODEL_GROUP_TITLE, titleProp.getValue());
-                CmsProperty descProp = m_cms.readPropertyObject(
-                    element.getResource(),
-                    CmsPropertyDefinition.PROPERTY_DESCRIPTION,
-                    false);
-                settings.put(CmsContainerElement.MODEL_GROUP_DESCRIPTION, descProp.getValue());
-            } catch (CmsException e) {
-                LOG.error(e.getLocalizedMessage(), e);
-            }
             if (allowCopyModel) {
                 // transfer all other settings
                 for (Entry<String, String> settingEntry : baseElement.getIndividualSettings().entrySet()) {
